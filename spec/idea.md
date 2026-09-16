@@ -8,7 +8,7 @@ The system is intended to allow users to browse recipes, view information about 
 
 Registered users will be able to add their own recipes and photos of prepared dishes and manage the recipes they have created.
 
-The intended users of the system are home cooks, people who want to prepare meals from ingredients they already have, and users interested in organizing and sharing cooking ideas in a simple and accessible way. The system is aimed at both casual users searching for practical meal suggestions and registered users who want to maintain their own recipe collections.
+Target users and their roles or the permissions associated with them will be defined during the detailed specification stage.
 
 The system will maintain structured information about recipes and ingredients so that recipes can be searched and matched according to the ingredients available to the user.
 
