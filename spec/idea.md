@@ -8,6 +8,8 @@ The system is intended to allow users to browse recipes, view information about 
 
 Registered users will be able to add their own recipes and photos of prepared dishes and manage the recipes they have created.
 
+Target users and their roles or the permissions associated with them will be defined during the detailed specification stage.
+
 The system will maintain structured information about recipes and ingredients so that recipes can be searched and matched according to the ingredients available to the user.
 
 The detailed functional and non-functional requirements will be defined during the specification stage of the project.
