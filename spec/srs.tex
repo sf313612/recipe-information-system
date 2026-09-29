@@ -1,0 +1,319 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{longtable}
+\usepackage{hyperref}
+
+\geometry{margin=1in}
+\setlist{itemsep=2pt, topsep=4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\title{Software Requirements Specification\\
+Recipe Information System and Dish Search by Available Ingredients}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\subsection{Purpose}
+This Software Requirements Specification (SRS) defines the approved requirements for the Recipe Information System and Dish Search by Available Ingredients. The system is a university MVP whose primary purpose is to help users determine what they can cook with ingredients they currently have.
+
+This document records the approved functional and non-functional requirements. It does not prescribe implementation technologies or architecture.
+
+\subsection{Scope}
+The system stores and organizes recipes, allows users to browse recipe information, and searches recipes by a user's selected available ingredients. It supports two user roles, recipe management by registered users, recipe and cooked-dish photos, and the authentication actions required for those functions.
+
+\subsection{Intended users}
+The intended users are:
+\begin{itemize}
+    \item Visitors who browse, search, and view recipes.
+    \item Registered users who additionally create and manage their own recipes and contribute cooked-dish photos.
+\end{itemize}
+
+\section{System Overview}
+
+\subsection{System purpose}
+The system addresses the situation in which a person has ingredients at home but does not know what they can cook. The user selects available ingredients, and the system identifies recipes that can be prepared now or are almost possible with only one or two missing Essential ingredients.
+
+\subsection{User roles}
+The system has exactly two user roles:
+\begin{description}
+    \item[Visitor] An unregistered user who can browse and search recipes and view recipe details and photos.
+    \item[Registered user] A user with a unique username and unique email address who can perform Visitor actions and use the approved recipe and photo contribution functions.
+\end{description}
+
+\subsection{Main capabilities}
+The system provides the following main capabilities:
+\begin{itemize}
+    \item registration, login, and logout;
+    \item browsing the shared recipe collection;
+    \item ingredient-based recipe search;
+    \item creation, editing, and deletion of recipes by their creators;
+    \item display of recipe details and optional metadata;
+    \item management of one optional recipe photo by its creator;
+    \item contribution of cooked-dish photos by registered users.
+\end{itemize}
+
+\subsection{MVP boundaries and exclusions}
+The MVP does not include administrator or moderator roles, additional user categories, password recovery, profile management, username changes, or social-network features. It also does not include manual ingredient entry, quantity-based inventory matching, draft or publishing workflows, or recommendation and popularity ranking.
+
+\section{Interface Requirements}
+
+The following interface requirements describe only the approved user-visible interactions. They do not prescribe a user-interface technology or implementation method.
+
+\begin{description}
+    \item[Ingredient selection and search] The interface shall allow users to select one or more ingredients from the predefined catalog, shall request at least one selection before executing ingredient-based search, shall keep the current selection visible, and shall update results only after an explicit new search. (REQ-F-027--REQ-F-034)
+    \item[Results and recipe details] Search results shall show the approved match classification, missing Essential ingredients where applicable, the recipe name, and the recipe photo when available. Recipe details shall show the approved recipe information, optional metadata when provided, preparation steps, and available photos with contributor usernames. (REQ-F-036--REQ-F-037, REQ-NF-004)
+    \item[Authentication forms and prompts] Registration, login, and logout shall use the approved account flow. A restricted action shall present a choice to log in or register; failed authentication shall provide clear feedback; after successful authentication the user shall return to the original page where possible, without automatic execution of the restricted action. (REQ-F-004--REQ-F-008, REQ-NF-002)
+    \item[Validation and error feedback] The interface shall identify invalid recipe information and invalid photo uploads clearly, shall not save invalid data, and shall allow the user to correct the issue and retry where the approved requirements provide for retry. (REQ-F-016, REQ-F-019, REQ-F-041, REQ-NF-002, REQ-NF-009)
+    \item[Destructive-action confirmations] Recipe deletion, recipe-photo removal, and cooked-dish-photo removal shall present understandable confirmation before the action takes effect. Cancelling shall leave the affected content unchanged, and replacement shall not require separate confirmation. (REQ-F-021--REQ-F-022, REQ-F-040, REQ-F-045, REQ-NF-003)
+    \item[Photo interactions] The interface shall allow the recipe creator to add, replace, and remove the optional recipe photo, and shall allow registered users to add, replace, and remove only their own cooked-dish photo according to the approved permissions. Invalid uploads shall produce clear feedback and shall not be saved. (REQ-F-039--REQ-F-045, REQ-NF-002, REQ-NF-004)
+\end{description}
+
+\section{Business Rules}
+
+\subsection{Ingredient catalog}
+The system uses a fixed, system-controlled ingredient catalog. Recipe ingredients and user-selected search ingredients must use identities from this catalog. Users cannot add, edit, or remove catalog ingredients. Manual ingredient entry is not supported.
+
+The fixed measurement units are:
+\begin{itemize}
+    \item \texttt{g} -- grams;
+    \item \texttt{kg} -- kilograms;
+    \item \texttt{ml} -- milliliters;
+    \item \texttt{l} -- liters;
+    \item \texttt{tsp} -- teaspoon;
+    \item \texttt{tbsp} -- tablespoon;
+    \item \texttt{cup} -- cup;
+    \item \texttt{pcs} -- pieces.
+\end{itemize}
+
+\subsection{Recipe ingredient classifications}
+A recipe ingredient entry is the occurrence of a catalog ingredient within a specific recipe, including its quantity, predefined measurement unit, and exactly one classification. The available classifications are Essential, Basic, and Optional. Classification is specific to the ingredient's use in a recipe; it is not a permanent property of the catalog ingredient.
+
+Each catalog ingredient may occur at most once in a recipe. If an ingredient is used at multiple preparation stages, its quantities are combined into one recipe ingredient entry.
+
+\subsection{Ingredient matching rules}
+Ingredient matching is based on availability, not exact quantity. A required ingredient is considered available when its catalog identity is included in the user's selected ingredient set. Recipe quantities are stored and displayed but are not compared during matching.
+
+The matching classification is:
+\begin{itemize}
+    \item zero missing Essential ingredients: \textbf{Can cook now};
+    \item one or two missing Essential ingredients: \textbf{Almost can cook};
+    \item three or more missing Essential ingredients: excluded from search results.
+\end{itemize}
+
+Basic and Optional ingredients do not count as missing Essential ingredients. Additional ingredients selected by the user do not invalidate a match. A recipe with no Essential ingredients has zero missing Essential ingredients and therefore qualifies as \textbf{Can cook now}.
+
+\subsection{Recipe validity rules}
+A valid recipe has a non-empty name, at least one recipe ingredient entry, and at least one valid preparation step. Each ingredient entry has a catalog ingredient, a quantity greater than zero, one predefined measurement unit, and exactly one classification.
+
+Quantities may be positive whole numbers or positive decimal numbers using a dot as the decimal separator. Zero and negative quantities are invalid. Preparation steps are separate, non-empty text entries stored in a defined order. Empty and whitespace-only steps are invalid.
+
+Description, cooking time, servings, and recipe category are optional metadata. They are not required for recipe validity and are not used for ingredient matching.
+
+\subsection{Recipe lifecycle rules}
+A valid newly saved recipe becomes immediately visible and searchable in the shared recipe collection. There is no draft, unpublished, pending, archived, deleted, or recoverable recipe state.
+
+Only the recipe creator may edit or delete a recipe. Edited data must satisfy the recipe validity rules before it is saved. If an edit is invalid, it is not saved and the previously saved valid version remains available.
+
+Confirmed recipe deletion permanently removes the recipe, its recipe photo, and all associated cooked-dish photos from user-facing views and search results. The content cannot be recovered.
+
+\subsection{Photo rules}
+A recipe may have one optional recipe photo. The recipe creator may add, replace, or remove this photo. Other users cannot modify or remove it. Removing the photo does not affect the recipe.
+
+Any registered user may add one active cooked-dish photo to any recipe. Each registered user may have at most one active cooked-dish photo per recipe. The contributor may replace or remove their own photo, but cannot modify another user's photo. The contributor's username is displayed with the photo.
+
+Recipe-photo removal, cooked-dish-photo removal, and recipe deletion require explicit confirmation. Replacing a photo does not require separate confirmation. Cancelling a confirmation leaves the affected content unchanged. An invalid photo upload is not saved and produces clear feedback.
+
+\subsection{Authentication and access rules}
+Registration requires a unique username, a unique email address, and a password. Login uses the email address and password. The username is the public author identity; the email address is not displayed publicly. Logout is supported.
+
+When a Visitor attempts a restricted action, the system presents a choice to log in or register. Cancelling leaves the current page and state unchanged. After successful authentication, the user returns to the original page where possible, but the originally requested action is not performed automatically.
+
+\section{Functional Requirements}
+
+\subsection{User Roles and Access Control}
+\begin{description}
+    \item[\texttt{REQ-F-001}] The system shall support exactly two user roles: Visitor and Registered User, with no administrator role or additional user categories in the MVP.
+    \item[\texttt{REQ-F-002}] The system shall allow Visitors to browse and search the shared recipe collection and view recipe details and photos, but shall prevent them from creating, editing, or deleting recipes and adding cooked-dish photos.
+    \item[\texttt{REQ-F-003}] The system shall allow Registered Users to perform Visitor actions, create recipes, edit and delete only recipes they created, manage their own recipe photos, and contribute cooked-dish photos.
+\end{description}
+
+\subsection{Authentication}
+\begin{description}
+    \item[\texttt{REQ-F-004}] The system shall allow a Visitor to register with a unique username, unique email address, and password, and shall use the username as the public author identity without displaying the email address publicly.
+    \item[\texttt{REQ-F-005}] The system shall allow Registered Users to log in with their email address and password and to log out.
+    \item[\texttt{REQ-F-006}] After failed login or registration, the system shall keep the user on the relevant form, display a clear error, preserve entered information where possible, and allow the user to correct and retry.
+    \item[\texttt{REQ-F-007}] When a Visitor attempts a Registered User action, the system shall display a prompt explaining the authentication requirement and offering login or registration; cancelling or closing the prompt shall leave the current page and state unchanged.
+    \item[\texttt{REQ-F-008}] After successful authentication from a restricted-action prompt, the system shall return the user to the original page and preserve its relevant state where possible, but shall not execute the originally requested action automatically.
+    \item[\texttt{REQ-F-009}] The system shall not provide password recovery, profile management, or username changes in the MVP.
+\end{description}
+
+\subsection{Recipe Creation and Validation}
+\begin{description}
+    \item[\texttt{REQ-F-010}] The system shall allow a Registered User to create a recipe with a non-empty name, at least one ingredient, and at least one valid preparation step; recipe names shall not be required to be unique.
+    \item[\texttt{REQ-F-011}] The system shall require every recipe ingredient to be represented by one recipe ingredient entry containing a catalog ingredient, a positive quantity, one predefined measurement unit, and exactly one classification: Essential, Basic, or Optional.
+    \item[\texttt{REQ-F-012}] The system shall allow ingredient quantities to be positive whole or decimal numbers using a dot as the decimal separator, and shall reject zero, negative, or otherwise invalid quantities.
+    \item[\texttt{REQ-F-013}] The system shall allow only the predefined measurement units \texttt{g}, \texttt{kg}, \texttt{ml}, \texttt{l}, \texttt{tsp}, \texttt{tbsp}, \texttt{cup}, and \texttt{pcs}, and shall reject free-text or other units.
+    \item[\texttt{REQ-F-014}] The system shall prevent a catalog ingredient from appearing more than once in the same recipe; quantities for repeated preparation use shall be combined into one recipe ingredient entry.
+    \item[\texttt{REQ-F-015}] The system shall store preparation steps as separate non-empty text entries in a defined order and shall reject empty or whitespace-only steps.
+    \item[\texttt{REQ-F-016}] The system shall prevent a recipe from being saved when any required recipe information or validation rule is not satisfied and shall display the relevant validation errors.
+    \item[\texttt{REQ-F-017}] The system shall allow a valid recipe to contain optional metadata including description, cooking time, servings, and recipe category. This metadata shall not be required for recipe validity or used for ingredient matching.
+\end{description}
+
+\subsection{Recipe Editing and Lifecycle}
+\begin{description}
+    \item[\texttt{REQ-F-018}] The system shall allow a Registered User to edit only recipes they created and shall apply the complete recipe validation rules before saving changes.
+    \item[\texttt{REQ-F-019}] The system shall save valid recipe edits immediately and make the updated recipe visible and searchable, while rejecting invalid edits, displaying validation errors, and preserving the previously saved valid version.
+    \item[\texttt{REQ-F-020}] The system shall make a newly saved valid recipe immediately visible and searchable in the shared recipe collection, without a draft, unpublished, pending, or separate publishing state.
+    \item[\texttt{REQ-F-021}] The system shall allow a recipe creator to delete only their own recipe after explicit confirmation; the confirmation shall state that the recipe and all associated user-facing photos will be permanently removed and cannot be recovered.
+    \item[\texttt{REQ-F-022}] If recipe deletion is confirmed, the system shall remove the recipe, its recipe photo, and all associated cooked-dish photos from the shared collection, search results, and user-facing views; if cancelled, it shall leave them unchanged.
+\end{description}
+
+\subsection{Ingredient Catalog and Matching Data}
+\begin{description}
+    \item[\texttt{REQ-F-023}] The system shall maintain a fixed, system-controlled ingredient catalog and shall prevent users from adding, editing, or removing catalog ingredients; manual ingredient entry shall not be supported.
+    \item[\texttt{REQ-F-024}] The system shall use the same standardized catalog ingredient identities for recipe ingredient entries and user-selected search ingredients.
+    \item[\texttt{REQ-F-025}] The system shall treat ingredient classification as a property of an ingredient's use in a specific recipe, allowing the same catalog ingredient to have different classifications in different recipes.
+    \item[\texttt{REQ-F-026}] The system shall store ingredient quantities and measurement units for display in recipe details, but shall not compare quantities when determining ingredient matches.
+\end{description}
+
+\subsection{Ingredient-Based Search}
+\begin{description}
+    \item[\texttt{REQ-F-027}] The system shall allow users to select one or more available ingredients from the predefined catalog and shall require at least one selected ingredient before executing a search.
+    \item[\texttt{REQ-F-028}] If no ingredient is selected, the system shall not execute the ingredient search and shall display a clear message asking the user to select at least one ingredient; browsing the shared collection shall remain available separately.
+    \item[\texttt{REQ-F-029}] The system shall evaluate each recipe against the complete set of selected ingredients, treat additional selected ingredients as non-negative input, and use the same rules for single-ingredient searches.
+    \item[\texttt{REQ-F-030}] The system shall classify search matches using the complete Essential-ingredient rule: recipes with zero missing Essential ingredients shall be \textbf{Can cook now}, recipes with one or two missing Essential ingredients shall be \textbf{Almost can cook}, and recipes with three or more missing Essential ingredients shall be excluded.
+    \item[\texttt{REQ-F-031}] The system shall determine missing ingredients using catalog availability only; Basic and Optional ingredients shall not count as missing Essential ingredients, and recipe quantities shall not affect the result.
+    \item[\texttt{REQ-F-032}] After displaying results, the system shall keep the selected ingredients visible, allow users to add or remove selections, and recalculate results from the complete updated set only when the user explicitly searches again.
+    \item[\texttt{REQ-F-033}] When no recipes satisfy the matching rules, the system shall display a clear empty-state message and shall not broaden the search or display unrelated or recommended recipes.
+    \item[\texttt{REQ-F-034}] The system shall display \textbf{Can cook now} results before \textbf{Almost can cook} results and shall use a consistent order within each group without ranking by popularity, ratings, cooking time, matching-ingredient count, or recommendations.
+\end{description}
+
+\subsection{Collection, Results, and Details}
+\begin{description}
+    \item[\texttt{REQ-F-035}] The system shall provide separate browsing of the shared recipe collection using a consistent default order without a special ranking algorithm.
+    \item[\texttt{REQ-F-036}] Each ingredient-search result shall display the recipe name, its match classification, and the recipe photo when available; \textbf{Almost can cook} results shall also display their missing Essential ingredients, while \textbf{Can cook now} results shall not display missing-ingredient information.
+    \item[\texttt{REQ-F-037}] The recipe details view shall display the recipe name, creator username, complete recipe ingredient entries, ordered preparation steps, optional metadata when provided, the recipe photo when available, and all associated cooked-dish photos with each contributor's username.
+    \item[\texttt{REQ-F-038}] The system shall not provide likes, comments, ratings, follows, or other social-network functionality in the MVP.
+\end{description}
+
+\subsection{Recipe Photos}
+\begin{description}
+    \item[\texttt{REQ-F-039}] The system shall allow a recipe creator to add one optional recipe photo during recipe creation, replace it during editing, or remove it without affecting the recipe, and shall prevent other users from modifying or removing it.
+    \item[\texttt{REQ-F-040}] The system shall require explicit confirmation before removing a recipe photo; cancelling shall leave the photo unchanged, while replacing the photo shall not require separate confirmation.
+    \item[\texttt{REQ-F-041}] The system shall display a clear error when a recipe or cooked-dish photo upload is invalid, shall not save the photo, and shall allow the user to correct the issue and retry. Specific file-size limits and formats are not defined in the MVP.
+\end{description}
+
+\subsection{Cooked-Dish Photos}
+\begin{description}
+    \item[\texttt{REQ-F-042}] The system shall allow any Registered User to add one cooked-dish photo to any recipe without verifying whether the user prepared the recipe.
+    \item[\texttt{REQ-F-043}] The system shall allow each Registered User to have at most one active cooked-dish photo per recipe and shall display the contributor's username with the photo.
+    \item[\texttt{REQ-F-044}] The system shall allow a contributor to replace or remove only their own cooked-dish photo and shall prevent users from modifying or removing another user's photo.
+    \item[\texttt{REQ-F-045}] The system shall require explicit confirmation before removing a user's cooked-dish photo; cancelling shall leave the photo unchanged, while replacing it shall not require separate confirmation.
+\end{description}
+
+\section{Non-Functional Requirements}
+
+\subsection{Usability}
+\begin{description}
+    \item[\texttt{REQ-NF-001}] The system shall use terminology consistently with the approved glossary.
+    \item[\texttt{REQ-NF-002}] The system shall display clear feedback for invalid input and failed operations, identifying what the user needs to correct without failing silently.
+    \item[\texttt{REQ-NF-003}] The system shall present destructive-action confirmations in understandable wording that identifies the affected recipe or photo and the consequences of confirmation.
+    \item[\texttt{REQ-NF-004}] The system shall present search results and recipe details in a consistent and readable structure.
+\end{description}
+
+\subsection{Security and Access Control}
+\begin{description}
+    \item[\texttt{REQ-NF-005}] The system shall not store registered-user passwords in plaintext.
+    \item[\texttt{REQ-NF-006}] The system shall consistently enforce the approved role and ownership permissions for recipe, recipe-photo, and cooked-dish-photo operations.
+    \item[\texttt{REQ-NF-007}] The system shall not expose a registered user's email address as the public identity associated with a recipe or cooked-dish photo.
+\end{description}
+
+\subsection{Data Integrity and Consistency}
+\begin{description}
+    \item[\texttt{REQ-NF-008}] The system shall not leave partially applied or invalid persisted data when a recipe update or photo operation fails.
+\end{description}
+
+\subsection{Reliability and Error Handling}
+\begin{description}
+    \item[\texttt{REQ-NF-009}] The system shall not expose implementation-specific or technical error details to ordinary users when an operation fails.
+\end{description}
+
+\subsection{Traceability and Documentation}
+\begin{description}
+    \item[\texttt{REQ-NF-010}] Each approved functional and non-functional requirement shall have one unique and stable identifier.
+    \item[\texttt{REQ-NF-011}] Requirements-related project artifacts shall use approved glossary terms and requirement identifiers consistently.
+    \item[\texttt{REQ-NF-012}] Requirements-related artifacts shall allow each documented requirement to be located and reviewed unambiguously using its stable identifier.
+\end{description}
+
+\section{Acceptance Criteria}
+
+The following approved acceptance criteria define observable checks for the requirements. Their detailed mappings to requirements and BDD scenarios are maintained in \texttt{spec/traceability.md}.
+
+\begin{longtable}{p{0.16\textwidth} p{0.78\textwidth}}
+\textbf{AC ID} & \textbf{Acceptance criterion} \\
+\hline
+\texttt{AC-001} & Given a Visitor or Registered User, when they browse, search, or open a recipe, then the system permits the actions available to that role; Visitors cannot create, edit, delete recipes, or add cooked-dish photos, while Registered Users can perform their approved actions. \\
+\texttt{AC-002} & Given registration data, when a Visitor submits a unique username, unique email address, and password, then the system creates a Registered User account, uses the username as the public identity, and does not expose the email address publicly. \\
+\texttt{AC-003} & Given an existing username or email address, or invalid authentication data, when the user submits registration or login, then the system rejects the attempt, displays a clear error, keeps the relevant form available, and preserves entered information where possible. Given valid login credentials, the user can log in and log out. \\
+\texttt{AC-004} & Given a Visitor attempts a restricted action, when the system displays the authentication prompt, then the prompt offers login and registration. If authentication succeeds, the user returns to the original page and relevant state where possible, but the restricted action is not performed automatically. If the prompt is cancelled, the page remains unchanged. \\
+\texttt{AC-005} & Inspection of the MVP confirms that password recovery, profile management, and username changes are not provided. \\
+\texttt{AC-006} & Given recipe creation, when the user enters a non-empty name and at least one ingredient entry, then each entry must use a catalog ingredient, a quantity greater than zero, one allowed measurement unit, and exactly one classification. Whole and decimal quantities using a dot are accepted; zero, negative, unsupported, or free-text units are rejected; duplicate catalog ingredients in one recipe are rejected. \\
+\texttt{AC-007} & Given recipe preparation steps, when the user saves the recipe, then at least one non-empty step is required, each step is stored separately in order, and empty or whitespace-only steps prevent saving with validation feedback. \\
+\texttt{AC-008} & Given optional description, cooking time, servings, or recipe category values, when a recipe is saved, then the recipe may be saved with or without those values; when provided, they are available in recipe details and do not affect ingredient matching. \\
+\texttt{AC-009} & Given a missing or invalid required recipe value, when the user saves the recipe, then the system displays relevant validation errors and does not save it. Given two valid recipes with the same name, then both may be saved. \\
+\texttt{AC-010} & Given a Registered User edits their own recipe, when the changes satisfy all recipe validation rules, then the system saves the changes and makes the updated recipe immediately visible and searchable. When validation fails, the system displays errors, does not save the changes, and preserves the previously valid version. \\
+\texttt{AC-011} & Given a valid newly created recipe, when it is saved, then it is immediately visible and searchable in the shared collection without a draft, unpublished, pending, or separate publishing state. \\
+\texttt{AC-012} & Given a recipe creator selects deletion, when the creator confirms the understandable permanent-deletion warning, then the recipe, recipe photo, and associated cooked-dish photos are removed from the collection, search results, and user-facing views. If cancellation occurs, no content is removed. \\
+\texttt{AC-013} & Given recipe creation or search, when an ingredient is selected, then it must come from the fixed system catalog, and the same catalog identity is used in both contexts. Users cannot modify the catalog. The same catalog ingredient may have different classifications in different recipes. \\
+\texttt{AC-014} & Given a saved recipe, when its details are displayed, then ingredient quantities and units are shown, but changing the quantity does not change ingredient-match classification. \\
+\texttt{AC-015} & Given no selected ingredients, when the user attempts ingredient-based search, then the system does not execute the search and displays a clear request to select at least one ingredient. The shared collection can still be browsed separately. \\
+\texttt{AC-016} & Given one or more selected ingredients, when the user searches, then the system evaluates each recipe against the complete selected set, including single-ingredient searches, and additional selected ingredients do not invalidate a match. \\
+\texttt{AC-017} & Given a recipe search, when the system counts missing Essential ingredients, then a recipe with zero missing Essential ingredients is classified \textbf{Can cook now}, one or two is classified \textbf{Almost can cook}, and three or more is excluded. \\
+\texttt{AC-018} & Given recipe ingredients and selected available ingredients, when matching is performed, then Basic and Optional ingredients are not counted as missing Essential ingredients, and ingredient quantities are not compared. \\
+\texttt{AC-019} & Given displayed search results, when the user adds or removes selected ingredients, then the selections remain visible and the results do not change until the user explicitly searches again. The new results use the complete updated selection. \\
+\texttt{AC-020} & Given no recipe meets the matching rules, when search completes, then the system displays a clear empty-state message and no unrelated or recommended recipes. When results exist, \textbf{Can cook now} results appear before \textbf{Almost can cook} results, with a consistent order within each group and no additional ranking. \\
+\texttt{AC-021} & Given the shared recipe collection, when a user browses it, then recipes are displayed in a consistent default order without popularity, rating, recommendation, or other special ranking. \\
+\texttt{AC-022} & Given ingredient-search results, when results are displayed, then each result shows the recipe name, match classification, and recipe photo when available; \textbf{Almost can cook} results show missing Essential ingredients, while \textbf{Can cook now} results do not show missing-ingredient information. \\
+\texttt{AC-023} & Given a recipe details view, when it is opened, then the system displays the recipe name, creator username, complete ingredient entries, quantities, units, classifications, ordered steps, provided optional metadata, available photos, and contributor usernames. No likes, comments, ratings, follows, or other social-network functionality is provided. \\
+\texttt{AC-024} & Given the recipe creator, when they create or edit their recipe, then they can add, replace, or remove one optional recipe photo. Other users cannot manage it. Removing it requires confirmation and does not affect the recipe; replacing it does not require separate confirmation; cancelling removal leaves it unchanged. \\
+\texttt{AC-025} & Given an invalid recipe or cooked-dish photo upload, when the upload is submitted, then the system displays a clear error, does not save the photo, preserves the previously valid photo state, and allows the user to correct the issue and retry. No specific file-size or format rule is required by the MVP. \\
+\texttt{AC-026} & Given any Registered User and any recipe, when the user adds a cooked-dish photo, then the system accepts at most one active photo from that user for that recipe, displays the contributor's username, and allows that contributor to replace or remove only their own photo. The system prevents modification or removal of another user's photo. \\
+\texttt{AC-027} & Given a user removes their cooked-dish photo, when they confirm the removal, then the photo is removed; when they cancel, it remains unchanged. Replacing the photo does not require separate confirmation. \\
+\end{longtable}
+
+\section{Verification and Traceability}
+The requirements are verified through a chain of artifacts:
+\begin{center}
+Requirement $\rightarrow$ Acceptance Criterion $\rightarrow$ BDD Scenario $\rightarrow$ future tests.
+\end{center}
+
+Acceptance criteria define observable checks for the approved requirements. The initial BDD specification provides a concise set of representative scenarios for the core MVP behavior. Future tests may implement the acceptance criteria and BDD scenarios without changing the approved requirements. The complete mapping is maintained in \texttt{spec/traceability.md}; this SRS does not duplicate that matrix.
+
+\section{Constraints and Exclusions}
+The approved MVP is intentionally limited to the following boundaries:
+\begin{itemize}
+    \item exactly two roles: Visitor and Registered User;
+    \item no administrator or moderator role and no other user categories;
+    \item no ratings, likes, comments, follows, or other social-network functionality;
+    \item no password recovery, profile management, or username changes;
+    \item no recommendation or popularity ranking system beyond the approved search-result grouping and consistent default ordering;
+    \item no manual ingredient entry or user-managed ingredient catalog;
+    \item no quantity-based ingredient matching;
+    \item no draft, unpublished, pending, or separate publishing workflow;
+    \item no enterprise performance, scalability, availability, backup, or uptime targets;
+    \item no prescribed programming language, framework, database, API, deployment infrastructure, or microservices architecture;
+    \item no specific photo file-size or file-format rules in the MVP.
+\end{itemize}
+
+\end{document}
