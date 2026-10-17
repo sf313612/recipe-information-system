@@ -77,3 +77,18 @@ This matrix links the approved functional and non-functional requirements to the
 - **Non-functional requirements without AC coverage:** REQ-NF-001, REQ-NF-005, REQ-NF-010, REQ-NF-011, and REQ-NF-012. These are verified through inspection or analysis rather than behavior-focused acceptance criteria.
 - **Functional requirements without direct BDD coverage:** REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-006, REQ-F-009, REQ-F-012, REQ-F-013, REQ-F-014, REQ-F-017, REQ-F-023, REQ-F-024, REQ-F-026, REQ-F-028, REQ-F-032, REQ-F-033, REQ-F-034, REQ-F-035, REQ-F-037, REQ-F-038, and REQ-F-041. These are covered by the acceptance criteria and are intentionally not forced into the initial 10-scenario BDD specification.
 - **Inconsistencies found:** None in the approved IDs or mappings. `spec/srs.tex` was referenced as a source artifact but is not currently present in the repository; no new requirement content was inferred from that missing file.
+
+## Lab 3 Issue Mapping (Draft)
+
+This section adds implementation-planning links only. It does not replace or modify the approved Lab 2 mappings above. The mappings refer to existing GitHub Issues and remain subject to Student review.
+
+| Issue | Source requirements | Acceptance criteria | BDD scenario mapping |
+|---|---|---|---|
+| #3 | REQ-F-001--REQ-F-045; REQ-NF-001--REQ-NF-012 | AC-001--AC-027 | All ten approved scenario names; used for plan approval, not implementation |
+| #4 | REQ-F-023, REQ-F-024, REQ-F-027, REQ-F-029, REQ-F-031 | AC-013, AC-016, AC-018 | UNCONFIRMED; no scenario defines singular/plural normalization |
+| #5 | REQ-F-001--REQ-F-009; REQ-NF-005, REQ-NF-006, REQ-NF-007 | AC-001--AC-005 | Register and log in as a Registered User; Prompt a Visitor to authenticate before a restricted action |
+| #6 | REQ-F-010--REQ-F-022; REQ-NF-002, REQ-NF-003, REQ-NF-006, REQ-NF-008 | AC-006--AC-012 | Create a valid recipe; Reject an invalid recipe; Edit and delete a user's own recipe |
+| #7 | REQ-F-023--REQ-F-034; REQ-NF-001, REQ-NF-004, REQ-NF-006 | AC-013--AC-020 | Find a recipe that can be prepared now; Find a recipe that is almost possible to prepare; Exclude recipes missing three or more Essential ingredients; Ignore Basic and Optional ingredients during matching |
+| #8 | REQ-F-035--REQ-F-038; REQ-NF-001, REQ-NF-004 | AC-021, AC-022, AC-023 | UNCONFIRMED; no direct BDD scenario covers the complete scope |
+| #9 | REQ-F-039--REQ-F-045; REQ-NF-002, REQ-NF-003, REQ-NF-006, REQ-NF-008 | AC-024--AC-027 | Manage recipe and cooked-dish photos according to permissions |
+| #10 | REQ-F-001--REQ-F-045; REQ-NF-001--REQ-NF-012 | AC-001--AC-027 | All explicitly mapped BDD scenarios; requirements without direct BDD coverage use their documented acceptance or inspection method |
