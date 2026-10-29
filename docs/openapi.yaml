@@ -413,7 +413,7 @@ components:
       properties:
         ingredientId: { type: string }
         name: { type: string, readOnly: true }
-        quantity: { type: number, exclusiveMinimum: 0 }
+        quantity: { type: number, minimum: 0, exclusiveMinimum: true }
         unit:
           type: string
           enum: [g, kg, ml, l, tsp, tbsp, cup, pcs]
