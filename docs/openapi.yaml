@@ -58,13 +58,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
+              example:
+                user:
+                  username: recipe-author
+                accessToken: mock-access-token
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
   /auth/logout:
     post:
       tags: [Authentication]
       summary: Log out
-      description: REQ-F-005.
+      description: >-
+        REQ-F-005. Lab 4 design decision: ends the authenticated session and
+        invalidates the access token used for this request. Prism mock does
+        not verify real token invalidation.
       responses:
         '204': { description: Logged out }
         '401': { $ref: '#/components/responses/Unauthorized' }
@@ -307,7 +314,9 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      description: Proposed authentication scheme; exact session/token format is not specified by the SRS.
+      description: >-
+        Send the non-empty accessToken returned by a successful POST /auth/login
+        as Authorization: Bearer <accessToken>.
   parameters:
     RecipeId:
       name: recipeId
@@ -393,14 +402,10 @@ components:
         user: { $ref: '#/components/schemas/User' }
     AuthResponse:
       type: object
-      required: [user, session]
+      required: [user, accessToken]
       properties:
         user: { $ref: '#/components/schemas/User' }
-        session:
-          type: object
-          required: [authenticated]
-          properties:
-            authenticated: { type: boolean }
+        accessToken: { type: string, minLength: 1 }
     Ingredient:
       type: object
       required: [id, name]
