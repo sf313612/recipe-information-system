@@ -92,3 +92,19 @@ This section adds implementation-planning links only. It does not replace or mod
 | #8 | REQ-F-035--REQ-F-038; REQ-NF-001, REQ-NF-004 | AC-021, AC-022, AC-023 | UNCONFIRMED; no direct BDD scenario covers the complete scope |
 | #9 | REQ-F-039--REQ-F-045; REQ-NF-002, REQ-NF-003, REQ-NF-006, REQ-NF-008 | AC-024--AC-027 | Manage recipe and cooked-dish photos according to permissions |
 | #10 | REQ-F-001--REQ-F-045; REQ-NF-001--REQ-NF-012 | AC-001--AC-027 | All explicitly mapped BDD scenarios; requirements without direct BDD coverage use their documented acceptance or inspection method |
+
+## Lab 4 API Mapping (Draft)
+
+This section links the proposed API contract in `docs/openapi.yaml` to existing functional requirements. It does not modify the approved Lab 2 mappings above.
+
+| API operation group | Proposed operations | Requirements |
+|---|---|---|
+| Authentication | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout` | REQ-F-004--REQ-F-008 |
+| Ingredient catalog | `GET /api/ingredients`, `GET /api/ingredients/{ingredientId}` | REQ-F-023, REQ-F-024, REQ-F-027 |
+| Recipe collection and details | `GET /api/recipes`, `GET /api/recipes/{recipeId}` | REQ-F-002, REQ-F-026, REQ-F-035--REQ-F-037 |
+| Recipe mutations | `POST /api/recipes`, `PUT /api/recipes/{recipeId}`, `DELETE /api/recipes/{recipeId}` | REQ-F-003, REQ-F-010--REQ-F-022 |
+| Ingredient-based search | `POST /api/recipes/search` | REQ-F-027--REQ-F-034 |
+| Recipe photo | `PUT /api/recipes/{recipeId}/photo`, `DELETE /api/recipes/{recipeId}/photo` | REQ-F-039--REQ-F-041 |
+| Cooked-dish photos | `POST /api/recipes/{recipeId}/cooked-dish-photos`, `PUT /api/recipes/{recipeId}/cooked-dish-photos/me`, `DELETE /api/recipes/{recipeId}/cooked-dish-photos/me` | REQ-F-041--REQ-F-045 |
+
+REQ-F-007, REQ-F-008, REQ-F-040, and REQ-F-045 also contain client-side prompt, navigation, or confirmation behavior; no separate API operation is proposed for those client-side actions. REQ-F-009 and REQ-F-038 are scope exclusions and have no API operation.

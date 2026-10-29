@@ -1,0 +1,537 @@
+openapi: 3.0.3
+info:
+  title: Recipe Information System API
+  version: 0.1.0
+  description: >-
+    Lab 4 API-first contract draft for the approved Recipe Information System
+    MVP. This contract does not add manual ingredient entry, normalization,
+    synonym matching, quantity-based matching, or social features.
+servers:
+  - url: /api
+security:
+  - bearerAuth: []
+tags:
+  - name: Authentication
+  - name: Ingredients
+  - name: Recipes
+  - name: Search
+  - name: Photos
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      security: []
+      summary: Register a user
+      description: REQ-F-004. Creates an account with a unique username and email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /auth/login:
+    post:
+      tags: [Authentication]
+      security: []
+      summary: Log in
+      description: REQ-F-005, REQ-F-006.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Log out
+      description: REQ-F-005.
+      responses:
+        '204': { description: Logged out }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /ingredients:
+    get:
+      tags: [Ingredients]
+      security: []
+      summary: List catalog ingredients
+      description: REQ-F-023, REQ-F-024, REQ-F-027. The catalog is read-only and fixed.
+      responses:
+        '200':
+          description: Catalog entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngredientListResponse'
+  /ingredients/{ingredientId}:
+    get:
+      tags: [Ingredients]
+      security: []
+      summary: Get a catalog ingredient
+      description: REQ-F-023, REQ-F-024.
+      parameters:
+        - $ref: '#/components/parameters/IngredientId'
+      responses:
+        '200':
+          description: Catalog ingredient
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404': { $ref: '#/components/responses/NotFound' }
+  /recipes:
+    get:
+      tags: [Recipes]
+      security: []
+      summary: Browse the shared recipe collection
+      description: REQ-F-002, REQ-F-035.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Recipe summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeSummaryListResponse'
+    post:
+      tags: [Recipes]
+      summary: Create a recipe
+      description: REQ-F-003, REQ-F-010 through REQ-F-017. Registered User only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeWriteRequest'
+      responses:
+        '201':
+          description: Recipe created and immediately visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /recipes/{recipeId}:
+    get:
+      tags: [Recipes]
+      security: []
+      summary: Get recipe details
+      description: REQ-F-002, REQ-F-026, REQ-F-037.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '200':
+          description: Recipe details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Recipes]
+      summary: Update own recipe
+      description: REQ-F-003, REQ-F-018, REQ-F-019. Creator only.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeWriteRequest'
+      responses:
+        '200':
+          description: Updated recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Recipes]
+      summary: Delete own recipe
+      description: REQ-F-003, REQ-F-021, REQ-F-022. Confirmation is client-side.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '204': { description: Recipe and associated user-facing photos removed }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /recipes/search:
+    post:
+      tags: [Search]
+      security: []
+      summary: Search recipes by available ingredients
+      description: >-
+        REQ-F-027 through REQ-F-034. Uses fixed catalog identities only. No
+        manual entry, singular/plural normalization, synonym matching, or
+        quantity-based matching is provided.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Ordered search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /recipes/{recipeId}/photo:
+    put:
+      tags: [Photos]
+      summary: Add or replace the recipe photo
+      description: REQ-F-039, REQ-F-041. Creator only; multipart is a design choice.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhotoUploadRequest'
+      responses:
+        '200':
+          description: Recipe photo updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Photos]
+      summary: Remove the recipe photo
+      description: REQ-F-040, REQ-F-041. Confirmation is client-side; creator only.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '204': { description: Recipe photo removed }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /recipes/{recipeId}/cooked-dish-photos:
+    post:
+      tags: [Photos]
+      summary: Add a cooked-dish photo
+      description: REQ-F-042, REQ-F-043, REQ-F-041. Registered User only.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhotoUploadRequest'
+      responses:
+        '201':
+          description: Cooked-dish photo created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /recipes/{recipeId}/cooked-dish-photos/me:
+    put:
+      tags: [Photos]
+      summary: Replace own cooked-dish photo
+      description: REQ-F-044, REQ-F-041. Contributor only; multipart is a design choice.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PhotoUploadRequest'
+      responses:
+        '200':
+          description: Cooked-dish photo replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Photos]
+      summary: Remove own cooked-dish photo
+      description: REQ-F-044, REQ-F-045. Confirmation is client-side; contributor only.
+      parameters:
+        - $ref: '#/components/parameters/RecipeId'
+      responses:
+        '204': { description: Cooked-dish photo removed }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Proposed authentication scheme; exact session/token format is not specified by the SRS.
+  parameters:
+    RecipeId:
+      name: recipeId
+      in: path
+      required: true
+      schema: { type: string }
+    IngredientId:
+      name: ingredientId
+      in: path
+      required: true
+      schema: { type: string }
+    Page:
+      name: page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1 }
+  responses:
+    BadRequest:
+      description: Malformed request or invalid search input
+      content:
+        application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    Unauthorized:
+      description: Authentication required or credentials invalid
+      content:
+        application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    Forbidden:
+      description: Authenticated user lacks permission
+      content:
+        application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    NotFound:
+      description: Resource does not exist or is not visible
+      content:
+        application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    Conflict:
+      description: Uniqueness or active-photo conflict
+      content:
+        application/json: { schema: { $ref: '#/components/schemas/Error' } }
+    ValidationError:
+      description: Domain validation failed
+      content:
+        application/json: { schema: { $ref: '#/components/schemas/Error' } }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username: { type: string }
+        email: { type: string }
+        password: { type: string, format: password }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string, format: password }
+    User:
+      type: object
+      required: [username]
+      properties:
+        username: { type: string }
+    UserResponse:
+      type: object
+      required: [user]
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+    AuthResponse:
+      type: object
+      required: [user, session]
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        session:
+          type: object
+          required: [authenticated]
+          properties:
+            authenticated: { type: boolean }
+    Ingredient:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+    IngredientEntry:
+      type: object
+      required: [ingredientId, quantity, unit, classification]
+      properties:
+        ingredientId: { type: string }
+        name: { type: string, readOnly: true }
+        quantity: { type: number, exclusiveMinimum: 0 }
+        unit:
+          type: string
+          enum: [g, kg, ml, l, tsp, tbsp, cup, pcs]
+        classification:
+          type: string
+          enum: [Essential, Basic, Optional]
+    PreparationStep:
+      type: object
+      required: [order, text]
+      properties:
+        order: { type: integer, minimum: 1 }
+        text: { type: string }
+    Metadata:
+      type: object
+      properties:
+        description: { type: string, nullable: true }
+        cookingTime: { type: string, nullable: true }
+        servings: { type: number, nullable: true }
+        category: { type: string, nullable: true }
+    RecipeWriteRequest:
+      type: object
+      required: [name, ingredients, preparationSteps]
+      properties:
+        name: { type: string }
+        ingredients:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/IngredientEntry' }
+        preparationSteps:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/PreparationStep' }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+    Photo:
+      type: object
+      required: [id, url, contributor]
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        contributor: { $ref: '#/components/schemas/User' }
+    Recipe:
+      type: object
+      required: [id, name, creator, ingredients, preparationSteps, cookedDishPhotos]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        creator: { $ref: '#/components/schemas/User' }
+        ingredients:
+          type: array
+          items: { $ref: '#/components/schemas/IngredientEntry' }
+        preparationSteps:
+          type: array
+          items: { $ref: '#/components/schemas/PreparationStep' }
+        metadata: { $ref: '#/components/schemas/Metadata' }
+        recipePhoto:
+          allOf:
+            - $ref: '#/components/schemas/Photo'
+          nullable: true
+        cookedDishPhotos:
+          type: array
+          items: { $ref: '#/components/schemas/Photo' }
+    RecipeSummary:
+      type: object
+      required: [id, name, creator]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        creator: { $ref: '#/components/schemas/User' }
+        recipePhoto:
+          allOf:
+            - $ref: '#/components/schemas/Photo'
+          nullable: true
+    RecipeSummaryListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/RecipeSummary' }
+    IngredientListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Ingredient' }
+    SearchRequest:
+      type: object
+      required: [ingredientIds]
+      properties:
+        ingredientIds:
+          type: array
+          minItems: 1
+          items: { type: string }
+    SearchResult:
+      type: object
+      required: [recipeId, name, classification, missingEssentialIngredients]
+      properties:
+        recipeId: { type: string }
+        name: { type: string }
+        classification:
+          type: string
+          enum: [Can cook now, Almost can cook]
+        missingEssentialIngredients:
+          type: array
+          items: { $ref: '#/components/schemas/Ingredient' }
+        recipePhoto: { $ref: '#/components/schemas/Photo' }
+    SearchResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/SearchResult' }
+    PhotoUploadRequest:
+      type: object
+      required: [photo]
+      properties:
+        photo:
+          type: string
+          format: binary
