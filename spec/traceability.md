@@ -26,8 +26,8 @@ This matrix links the approved functional and non-functional requirements to the
 | REQ-F-018 | Functional | AC-010 | Edit and delete a user's own recipe | Directly covered by the recipe-management scenario. |
 | REQ-F-019 | Functional | AC-010 | Edit and delete a user's own recipe | Directly covered for valid edits and acceptance-tested for invalid edits. |
 | REQ-F-020 | Functional | AC-011 | Create a valid recipe; Edit and delete a user's own recipe | Directly covered for newly saved recipes and valid edits. |
-| REQ-F-021 | Functional | AC-012 | Edit and delete a user's own recipe | Directly covered by the recipe-deletion scenario. |
-| REQ-F-022 | Functional | AC-012 | Edit and delete a user's own recipe | Directly covered by the recipe-deletion scenario. |
+| REQ-F-021 | Functional | AC-012 | Edit and delete a user's own recipe | Directly covered by the recipe-deletion scenario. Associated recipe-photo and cooked-dish photo file cleanup is verified by `test_deleting_recipe_removes_associated_photo_files`; focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-022 | Functional | AC-012 | Edit and delete a user's own recipe | Directly covered by the recipe-deletion scenario. Associated recipe-photo and cooked-dish photo file cleanup is verified by `test_deleting_recipe_removes_associated_photo_files`; focused photo tests: 7 passed; latest full regression: 47 passed. |
 | REQ-F-023 | Functional | AC-013 | — | No direct BDD scenario for catalog administration restrictions. |
 | REQ-F-024 | Functional | AC-013 | — | Standardized catalog identity consistency is covered by acceptance testing; no direct BDD scenario. |
 | REQ-F-025 | Functional | AC-013 | Ignore Basic and Optional ingredients during matching | Directly covered for recipe-specific classification behavior. |
@@ -41,16 +41,16 @@ This matrix links the approved functional and non-functional requirements to the
 | REQ-F-033 | Functional | AC-020 | — | No direct BDD scenario for the empty result state. |
 | REQ-F-034 | Functional | AC-020, AC-021 | — | No direct BDD scenario for result ordering. |
 | REQ-F-035 | Functional | AC-021 | — | No direct BDD scenario for collection browsing order. |
-| REQ-F-036 | Functional | AC-022 | Find a recipe that is almost possible to prepare | Directly covered for Almost can cook result content. |
-| REQ-F-037 | Functional | AC-023 | — | No direct BDD scenario for the complete details view. |
+| REQ-F-036 | Functional | AC-022 | Find a recipe that is almost possible to prepare | Search photo URL and retrieved bytes are verified by `test_recipe_search_returns_a_retrievable_photo_url`; focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-037 | Functional | AC-023 | — | Recipe details photo metadata is verified by `test_recipe_photo_upload_retry_replacement_and_retrieval`; the exact cooked-dish contributor username in the recipe details response is verified by `test_cooked_dish_photo_upload_retry_duplicate_replacement_and_retrieval`. Focused photo tests: 7 passed; latest full regression: 47 passed. |
 | REQ-F-038 | Functional | AC-023 | — | No direct BDD scenario; exclusion is verified by inspection. |
-| REQ-F-039 | Functional | AC-024 | Manage recipe and cooked-dish photos according to permissions | Directly covered by the photo-management scenario. |
-| REQ-F-040 | Functional | AC-024 | Manage recipe and cooked-dish photos according to permissions | Directly covered for recipe-photo removal and confirmation. |
-| REQ-F-041 | Functional | AC-025 | — | No direct BDD scenario for invalid photo uploads. |
-| REQ-F-042 | Functional | AC-026 | Manage recipe and cooked-dish photos according to permissions | Directly covered for registered-user contribution. |
-| REQ-F-043 | Functional | AC-026 | Manage recipe and cooked-dish photos according to permissions | Directly covered for contributor identity and one active photo. |
-| REQ-F-044 | Functional | AC-026 | Manage recipe and cooked-dish photos according to permissions | Directly covered for contributor permissions. |
-| REQ-F-045 | Functional | AC-027 | Manage recipe and cooked-dish photos according to permissions | Directly covered for cooked-dish photo removal confirmation. |
+| REQ-F-039 | Functional | AC-024 | Manage recipe and cooked-dish photos according to permissions | Recipe-photo lifecycle and retrieval are verified by `test_recipe_photo_upload_retry_replacement_and_retrieval`; permissions are covered by `test_photo_permissions_and_contributor_ownership`; recipe deletion cleanup by `test_deleting_recipe_removes_associated_photo_files`. Focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-040 | Functional | AC-024 | Manage recipe and cooked-dish photos according to permissions | Recipe-photo API removal is verified by `test_recipe_photo_upload_retry_replacement_and_retrieval`; confirmation and cancellation remain client-side and are not implemented or tested in this API-only scope. Focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-041 | Functional | AC-025 | — | Invalid upload, retry, and invalid replacement preservation are verified by `test_recipe_photo_upload_retry_replacement_and_retrieval` and `test_cooked_dish_photo_upload_retry_duplicate_replacement_and_retrieval`. Focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-042 | Functional | AC-026 | Manage recipe and cooked-dish photos according to permissions | Registered-user contribution is verified by `test_cooked_dish_photo_upload_retry_duplicate_replacement_and_retrieval`; focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-043 | Functional | AC-026 | Manage recipe and cooked-dish photos according to permissions | Duplicate prevention and contributor metadata are verified by `test_cooked_dish_photo_upload_retry_duplicate_replacement_and_retrieval`; the exact username is asserted on upload and replacement responses. Focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-044 | Functional | AC-026 | Manage recipe and cooked-dish photos according to permissions | Contributor-only replacement and deletion are verified by `test_photo_permissions_and_contributor_ownership`; focused photo tests: 7 passed; latest full regression: 47 passed. |
+| REQ-F-045 | Functional | AC-027 | Manage recipe and cooked-dish photos according to permissions | Cooked-dish photo API deletion is verified by `test_cooked_dish_photo_upload_retry_duplicate_replacement_and_retrieval`; confirmation and cancellation remain client-side and are not implemented or tested in this API-only scope. Focused photo tests: 7 passed; latest full regression: 47 passed. |
 
 ## Non-Functional Requirements
 
@@ -107,7 +107,7 @@ This section links the proposed API contract in `docs/openapi.yaml` to existing 
 | Recipe photo | `PUT /api/recipes/{recipeId}/photo`, `DELETE /api/recipes/{recipeId}/photo` | REQ-F-039--REQ-F-041 |
 | Cooked-dish photos | `POST /api/recipes/{recipeId}/cooked-dish-photos`, `PUT /api/recipes/{recipeId}/cooked-dish-photos/me`, `DELETE /api/recipes/{recipeId}/cooked-dish-photos/me` | REQ-F-041--REQ-F-045 |
 
-REQ-F-007, REQ-F-008, REQ-F-040, and REQ-F-045 also contain client-side prompt, navigation, or confirmation behavior; no separate API operation is proposed for those client-side actions. REQ-F-009 and REQ-F-038 are scope exclusions and have no API operation.
+REQ-F-007, REQ-F-008, REQ-F-040, and REQ-F-045 also contain client-side prompt, navigation, or confirmation behavior; no separate API operation is proposed for those client-side actions. Removal confirmation and cancellation for REQ-F-040 / AC-024 and REQ-F-045 / AC-027 are client-side responsibilities outside this API-only implementation scope; no UI confirmation behavior was implemented or tested here. REQ-F-009 and REQ-F-038 are scope exclusions and have no API operation.
 
 ## Lab 5 Pagination Addendum Mapping
 
@@ -120,3 +120,24 @@ The pagination addendum supplements `REQ-F-035` and `AC-021`. It does not alter 
 | ADD-F-003 | ADD-AC-002, ADD-AC-003 | `GET /api/recipes?page&pageSize` | `test_browse_recipes_returns_requested_page_in_collection_order`; `test_browse_recipes_page_beyond_collection_is_empty` |
 
 The focused tests characterize behavior already present in the committed implementation. A RED/GREEN cycle was not claimed because demonstrating RED would require breaking that pre-existing behavior; see `spec/addendum-pagination.md` and `logs/lab5.md`.
+
+## Category Filter Addendum Mapping (SPEC-ADDENDUM-GATE Approved; Implemented and Verified)
+
+This approved addendum supplements `REQ-F-017` / `AC-008` and `REQ-F-035` / `AC-021`. It remains separate from the approved Lab 2 baseline. The implementation and OpenAPI contract are updated, and the focused and full API test runs recorded in `logs/lab5.md` passed.
+
+| Addendum requirement / status | Existing requirement / AC | Addendum AC / status | BDD scenario mapping | API operation | Verification evidence |
+|---|---|---|---|---|---|
+| ADD-F-004 — implemented | REQ-F-017 / AC-008; REQ-F-035 / AC-021 | ADD-AC-006, ADD-AC-008, ADD-AC-009 — verified | Browse recipes in a selected category (`ADD-AC-006` only) | `GET /api/recipes?category` | `test_browse_recipes_accepts_dessert_category`; `test_browse_recipes_filters_exact_category_before_pagination`; `test_browse_recipes_rejects_empty_category` — focused run: 5 passed; earlier full run: 46 passed; later full run after photo-test consolidation: 43 passed; latest full run after photo coverage additions: 47 passed |
+| ADD-F-005 — implemented | REQ-F-035 / AC-021 | ADD-AC-005, ADD-AC-007 — verified | — (no BDD scenario directly demonstrates omitted-category behavior or a filtered page boundary) | `GET /api/recipes?category&page&pageSize` | `test_browse_recipes_without_category_keeps_categorized_and_uncategorized_items`; `test_browse_recipes_filters_exact_category_before_pagination`; `test_browse_recipes_defaults_to_page_one_and_page_size_ten`; `test_browse_recipes_returns_requested_page_in_collection_order` — focused run: 5 passed; earlier full run: 46 passed; later full run after photo-test consolidation: 43 passed; latest full run after photo coverage additions: 47 passed |
+
+| Acceptance criterion / status | Direct API test evidence |
+|---|---|
+| ADD-AC-005 — verified | `test_browse_recipes_without_category_keeps_categorized_and_uncategorized_items`; existing pagination behavior also covered by `test_browse_recipes_defaults_to_page_one_and_page_size_ten` and `test_browse_recipes_returns_requested_page_in_collection_order` |
+| ADD-AC-006 — verified | `test_browse_recipes_accepts_dessert_category`; `test_browse_recipes_filters_exact_category_before_pagination` |
+| ADD-AC-007 — verified | `test_browse_recipes_filters_exact_category_before_pagination` |
+| ADD-AC-008 — verified | `test_browse_recipes_filters_exact_category_before_pagination` |
+| ADD-AC-009 — verified | `test_browse_recipes_rejects_empty_category` |
+
+All five category-filter tests passed in the recorded focused runs. The earlier full regression result was 46 passed, 0 failed, 0 errors; the later full run after consolidating six photo tests into three was 43 passed, 0 failed, 0 errors. The latest full regression after the photo coverage additions was 47 passed, 0 failed, 0 errors. The OpenAPI category parameter and 422 response were checked against the contract and runtime schema; the contract check passed. The final test runs emitted one existing AnyIO deprecation warning, not a test failure. `test_browse_recipes_treats_encoded_space_as_literal_category` also passed in both focused category-filter runs.
+
+**SPEC-ADDENDUM-GATE:** GO, approved by the Student on 2026-11-11. See `spec/addendum-recipe-category-filter.md` for the approved requirements, BDD scenario, ticket draft, impact analysis, and rationale. Category-filter RED → GREEN evidence and the REFACTOR review are recorded in `logs/lab5.md`.

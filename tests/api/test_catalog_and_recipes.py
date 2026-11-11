@@ -1,4 +1,33 @@
+from uuid import uuid4
+
 import pytest
+
+
+def _create_recipe_for_category_filter(api_client, bearer_headers, name, category=None):
+    recipe_data = {
+        "name": name,
+        "ingredients": [
+            {
+                "ingredientId": "ingredient-1",
+                "quantity": 100,
+                "unit": "g",
+                "classification": "Essential",
+            }
+        ],
+        "preparationSteps": [{"order": 1, "text": "Prepare the dish."}],
+    }
+
+    if category is not None:
+        recipe_data["metadata"] = {"category": category}
+
+    response = api_client.post(
+        "/recipes",
+        headers=bearer_headers,
+        json=recipe_data,
+    )
+
+    assert response.status_code == 201
+    return response.json()
 
 
 def test_list_catalog_ingredients(api_client):
@@ -21,6 +50,152 @@ def test_browse_recipes(api_client):
 
     assert response.status_code == 200
     assert "items" in response.json()
+
+
+def test_browse_recipes_without_category_keeps_categorized_and_uncategorized_items(
+    api_client,
+    bearer_headers,
+):
+    category = "Dessert"
+    categorized_recipe = _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Categorized {uuid4().hex}",
+        category,
+    )
+    uncategorized_recipe = _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Uncategorized {uuid4().hex}",
+    )
+
+    response = api_client.get("/recipes", params={"pageSize": 10000})
+
+    assert response.status_code == 200
+    assert set(response.json()) == {"items"}
+    returned_ids = [item["id"] for item in response.json()["items"]]
+    assert categorized_recipe["id"] in returned_ids
+    assert uncategorized_recipe["id"] in returned_ids
+
+
+def test_browse_recipes_accepts_dessert_category(api_client, bearer_headers):
+    category = f"Dessert-{uuid4().hex}"
+    dessert_recipe = _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Dessert {uuid4().hex}",
+        category,
+    )
+
+    response = api_client.get(
+        "/recipes",
+        params={"category": category, "pageSize": 10000},
+    )
+
+    assert response.status_code == 200
+    returned_ids = [item["id"] for item in response.json()["items"]]
+    assert returned_ids == [dessert_recipe["id"]]
+
+
+def test_browse_recipes_filters_exact_category_before_pagination(api_client, bearer_headers):
+    suffix = uuid4().hex
+    category = f"Dessert-{suffix}"
+    matching_recipes = [
+        _create_recipe_for_category_filter(
+            api_client,
+            bearer_headers,
+            f"Matching dessert {index}-{suffix}",
+            category,
+        )
+        for index in (1, 2)
+    ]
+    _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Soup {suffix}",
+        f"Soup-{suffix}",
+    )
+    _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Case variant {suffix}",
+        category.lower(),
+    )
+    _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Uncategorized {suffix}",
+    )
+    matching_recipes.append(
+        _create_recipe_for_category_filter(
+            api_client,
+            bearer_headers,
+            f"Matching dessert 3-{suffix}",
+            category,
+        )
+    )
+
+    response = api_client.get(
+        "/recipes",
+        params={"category": category, "pageSize": 10000},
+    )
+
+    assert response.status_code == 200
+    assert set(response.json()) == {"items"}
+    assert [item["id"] for item in response.json()["items"]] == [
+        recipe["id"] for recipe in matching_recipes
+    ]
+
+    first_page = api_client.get(
+        "/recipes",
+        params={"category": category, "page": 1, "pageSize": 2},
+    )
+    second_page = api_client.get(
+        "/recipes",
+        params={"category": category, "page": 2, "pageSize": 2},
+    )
+
+    assert first_page.status_code == 200
+    assert second_page.status_code == 200
+    assert [item["id"] for item in first_page.json()["items"]] == [
+        recipe["id"] for recipe in matching_recipes[:2]
+    ]
+    assert [item["id"] for item in second_page.json()["items"]] == [
+        recipe["id"] for recipe in matching_recipes[2:]
+    ]
+
+    no_match = api_client.get(
+        "/recipes",
+        params={"category": f"No-Match-{suffix}"},
+    )
+    assert no_match.status_code == 200
+    assert no_match.json() == {"items": []}
+
+
+def test_browse_recipes_rejects_empty_category(api_client):
+    response = api_client.get("/recipes?category=")
+
+    assert response.status_code == 422
+
+
+def test_browse_recipes_treats_encoded_space_as_literal_category(
+    api_client,
+    bearer_headers,
+):
+    space_category_recipe = _create_recipe_for_category_filter(
+        api_client,
+        bearer_headers,
+        f"Space category {uuid4().hex}",
+        " ",
+    )
+
+    response = api_client.get("/recipes?category=%20&pageSize=10000")
+
+    assert response.status_code == 200
+    returned_ids = [item["id"] for item in response.json()["items"]]
+    assert space_category_recipe["id"] in returned_ids
+    assert "recipe-1" not in returned_ids
+    assert "recipe-2" not in returned_ids
 
 
 def test_browse_recipes_defaults_to_page_one_and_page_size_ten(api_client):

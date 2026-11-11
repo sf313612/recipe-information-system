@@ -53,6 +53,8 @@ The detailed operation descriptions in `openapi.yaml` contain the exact REQ-F ID
 - Recipe and search matching use standardized catalog identities only. Manual ingredient entry, singular/plural normalization, synonym matching, quantity-based matching, and social features are not added.
 - Pagination query parameters are optional design choices for collection browsing; pagination is not an approved product requirement.
 
+**Chronology clarification (Lab 5):** The statement above records the Lab 4 decision as it stood at that time. Pagination was not an approved product requirement during Lab 4; it was later added in the separate `spec/addendum-pagination.md` and received a SPEC-ADDENDUM-GATE decision of GO. The historical Lab 4 decision is unchanged.
+
 ### Unresolved Assumptions
 
 - Exact HTTP error-code vocabulary and validation-detail conventions are API design choices.

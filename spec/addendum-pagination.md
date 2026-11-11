@@ -35,4 +35,4 @@ The extension is within the established shared-collection browsing scope of `REQ
 
 ## TDD evidence deviation
 
-A genuine RED/GREEN cycle was not demonstrated. The approved behavior was already implemented in committed code before this addendum was written. Producing a RED result would require intentionally breaking that pre-existing behavior, which would undermine the preserved checkpoint and is not justified. Focused tests will be used to verify and characterize the existing behavior; their passing result will not be represented as a TDD RED/GREEN cycle. No implementation change is required for this extension.
+A genuine RED/GREEN cycle was not demonstrated. The approved behavior was already implemented in committed code before this addendum was written. Producing a RED result would require intentionally breaking that pre-existing behavior, which would undermine the preserved checkpoint and is not justified. Focused tests were used to verify and characterize the existing behavior; their passing result is not represented as a TDD RED/GREEN cycle. No implementation change was required for this extension.

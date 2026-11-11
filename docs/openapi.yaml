@@ -110,11 +110,14 @@ paths:
       security: []
       summary: Browse the shared recipe collection
       description: >-
-        REQ-F-002, REQ-F-035, ADD-F-001 through ADD-F-003. Defaults to page 1
-        and pageSize 10; results retain the existing collection order.
+        REQ-F-002, REQ-F-035, ADD-F-001 through ADD-F-005. Defaults to page 1
+        and pageSize 10. An optional category matches metadata.category exactly
+        and case-sensitively; category filtering occurs before pagination and
+        preserves the existing collection order. Category values are not trimmed.
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Category'
       responses:
         '200':
           description: Recipe summaries
@@ -122,6 +125,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RecipeSummaryListResponse'
+        '422': { $ref: '#/components/responses/ValidationError' }
     post:
       tags: [Recipes]
       summary: Create a recipe
@@ -217,11 +221,32 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /photos/{photoId}:
+    get:
+      tags: [Photos]
+      security: []
+      summary: Retrieve a photo
+      description: Returns the stored image bytes for a photo URL.
+      parameters:
+        - name: photoId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Image bytes
+          content:
+            image/*:
+              schema: { type: string, format: binary }
+        '404': { $ref: '#/components/responses/NotFound' }
   /recipes/{recipeId}/photo:
     put:
       tags: [Photos]
       summary: Add or replace the recipe photo
-      description: REQ-F-039, REQ-F-041. Creator only; multipart is a design choice.
+      description: >-
+        REQ-F-039, REQ-F-041. Creator only. Accepts a non-empty image that
+        Pillow can verify; no additional format, MIME-type, or size restrictions
+        are imposed. Invalid content returns 422 without replacing the current photo.
       parameters:
         - $ref: '#/components/parameters/RecipeId'
       requestBody:
@@ -256,7 +281,10 @@ paths:
     post:
       tags: [Photos]
       summary: Add a cooked-dish photo
-      description: REQ-F-042, REQ-F-043, REQ-F-041. Registered User only.
+      description: >-
+        REQ-F-042, REQ-F-043, REQ-F-041. Registered User only. Accepts a
+        non-empty image that Pillow can verify; no additional format, MIME-type,
+        or size restrictions are imposed. Invalid content returns 422.
       parameters:
         - $ref: '#/components/parameters/RecipeId'
       requestBody:
@@ -280,7 +308,10 @@ paths:
     put:
       tags: [Photos]
       summary: Replace own cooked-dish photo
-      description: REQ-F-044, REQ-F-041. Contributor only; multipart is a design choice.
+      description: >-
+        REQ-F-044, REQ-F-041. Contributor only. Accepts a non-empty image that
+        Pillow can verify; no additional format, MIME-type, or size restrictions
+        are imposed. Invalid content returns 422 without replacing the current photo.
       parameters:
         - $ref: '#/components/parameters/RecipeId'
       requestBody:
@@ -342,6 +373,15 @@ components:
       required: false
       description: Number of recipes per page; defaults to 10.
       schema: { type: integer, minimum: 1, default: 10 }
+    Category:
+      name: category
+      in: query
+      required: false
+      description: >-
+        Exact, case-sensitive match against metadata.category. The value must
+        not be empty. Whitespace is a literal value and is not trimmed. This
+        filter is applied before pagination.
+      schema: { type: string, minLength: 1 }
   responses:
     BadRequest:
       description: Malformed request or invalid search input
@@ -461,7 +501,10 @@ components:
       required: [id, url, contributor]
       properties:
         id: { type: string }
-        url: { type: string, format: uri }
+        url:
+          type: string
+          format: uri
+          description: Absolute public URL served by GET /api/photos/{photoId}.
         contributor: { $ref: '#/components/schemas/User' }
     Recipe:
       type: object
@@ -529,7 +572,12 @@ components:
         missingEssentialIngredients:
           type: array
           items: { $ref: '#/components/schemas/Ingredient' }
-        recipePhoto: { $ref: '#/components/schemas/Photo' }
+        recipePhoto:
+          oneOf:
+            - $ref: '#/components/schemas/Photo'
+            - type: object
+              nullable: true
+              enum: [null]
     SearchResponse:
       type: object
       required: [items]
@@ -544,3 +592,4 @@ components:
         photo:
           type: string
           format: binary
+          description: Non-empty image bytes. The server verifies image content; no explicit format, MIME-type, or size restrictions are defined.

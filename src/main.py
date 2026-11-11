@@ -13,6 +13,7 @@ from fastapi import (
     File,
     Request,
 )
+from fastapi.responses import FileResponse
 
 from src.schemas import (
     RecipeWriteRequest,
@@ -21,6 +22,12 @@ from src.schemas import (
     LoginRequest,
 )
 from src.routers.ingredients import INGREDIENTS, router as ingredients_router
+from src.photo_storage import (
+    InvalidPhotoError,
+    delete_stored_photo,
+    get_stored_photo,
+    store_uploaded_photo,
+)
 
 app = FastAPI(title="Recipe Information System API")
 app.include_router(ingredients_router)
@@ -182,10 +189,19 @@ def health_check() -> dict[str, str]:
 def list_recipes(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=10, alias="pageSize", ge=1),
+    category: str | None = Query(default=None, min_length=1),
 ) -> dict[str, list[dict[str, object]]]:
+    recipes = RECIPES
+    if category is not None:
+        recipes = [
+            recipe
+            for recipe in RECIPES
+            if (recipe.get("metadata") or {}).get("category") == category
+        ]
+
     start = (page - 1) * page_size
     end = start + page_size
-    return {"items": RECIPES[start:end]}
+    return {"items": recipes[start:end]}
 
 @app.get("/api/recipes/{recipe_id}")
 def get_recipe(recipe_id: str) -> dict[str, object]:
@@ -354,6 +370,10 @@ def delete_recipe(
     if recipe["creator"]["username"] != username:
         raise HTTPException(status_code=403, detail="Not the recipe owner")
 
+    for photo in [recipe.get("recipePhoto"), *recipe["cookedDishPhotos"]]:
+        if photo is not None:
+            delete_stored_photo(photo["id"])
+
     RECIPES.remove(recipe)
 
     logger.info("Recipe deleted: %s", recipe_id)
@@ -363,6 +383,7 @@ def delete_recipe(
 @app.put("/api/recipes/{recipe_id}/photo")
 def upload_recipe_photo(
     recipe_id: str,
+    request: Request,
     photo: UploadFile = File(...),
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
@@ -379,9 +400,19 @@ def upload_recipe_photo(
     if recipe["creator"]["username"] != username:
         raise HTTPException(status_code=403, detail="Not the recipe owner")
 
+    photo_id = (
+        recipe["recipePhoto"]["id"]
+        if recipe["recipePhoto"] is not None
+        else f"photo-{recipe_id}"
+    )
+    try:
+        _, _ = store_uploaded_photo(photo_id, photo.file)
+    except InvalidPhotoError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
     photo_data = {
-        "id": f"photo-{recipe_id}",
-        "url": f"/uploads/{photo.filename}",
+        "id": photo_id,
+        "url": str(request.url_for("retrieve_photo", photo_id=photo_id)),
         "contributor": {"username": username},
     }
 
@@ -413,6 +444,7 @@ def delete_recipe_photo(
     if recipe["recipePhoto"] is None:
         raise HTTPException(status_code=404, detail="Recipe photo not found")
 
+    delete_stored_photo(recipe["recipePhoto"]["id"])
     recipe["recipePhoto"] = None
 
     logger.info("Recipe photo deleted: %s", recipe_id)
@@ -421,6 +453,7 @@ def delete_recipe_photo(
 @app.post("/api/recipes/{recipe_id}/cooked-dish-photos", status_code=201)
 def upload_cooked_dish_photo(
     recipe_id: str,
+    request: Request,
     photo: UploadFile = File(...),
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
@@ -443,9 +476,15 @@ def upload_cooked_dish_photo(
             detail="You already have a cooked dish photo for this recipe",
         )
 
+    photo_id = f"cooked-photo-{recipe_id}-{secrets.token_hex(4)}"
+    try:
+        store_uploaded_photo(photo_id, photo.file)
+    except InvalidPhotoError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
     photo_data = {
-        "id": f"cooked-photo-{recipe_id}-{secrets.token_hex(4)}",
-        "url": f"/uploads/{photo.filename}",
+        "id": photo_id,
+        "url": str(request.url_for("retrieve_photo", photo_id=photo_id)),
         "contributor": {"username": username},
     }
 
@@ -459,6 +498,7 @@ def upload_cooked_dish_photo(
 @app.put("/api/recipes/{recipe_id}/cooked-dish-photos/me")
 def replace_my_cooked_dish_photo(
     recipe_id: str,
+    request: Request,
     photo: UploadFile = File(...),
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
@@ -483,9 +523,14 @@ def replace_my_cooked_dish_photo(
     if existing_photo is None:
         raise HTTPException(status_code=404, detail="Your cooked dish photo not found")
 
+    try:
+        store_uploaded_photo(existing_photo["id"], photo.file)
+    except InvalidPhotoError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
     photo_data = {
         "id": existing_photo["id"],
-        "url": f"/uploads/{photo.filename}",
+        "url": str(request.url_for("retrieve_photo", photo_id=existing_photo["id"])),
         "contributor": {"username": username},
     }
 
@@ -526,6 +571,17 @@ def delete_my_cooked_dish_photo(
     if photo_index is None:
         raise HTTPException(status_code=404, detail="Your cooked dish photo not found")
 
+    delete_stored_photo(recipe["cookedDishPhotos"][photo_index]["id"])
     recipe["cookedDishPhotos"].pop(photo_index)
 
     logger.info("Cooked dish photo deleted: %s", recipe_id)
+
+
+@app.get("/api/photos/{photo_id}", name="retrieve_photo")
+def retrieve_photo(photo_id: str) -> FileResponse:
+    stored_photo = get_stored_photo(photo_id)
+    if stored_photo is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+
+    path, media_type = stored_photo
+    return FileResponse(path, media_type=media_type)
