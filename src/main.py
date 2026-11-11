@@ -20,8 +20,10 @@ from src.schemas import (
     RegisterRequest,
     LoginRequest,
 )
+from src.routers.ingredients import INGREDIENTS, router as ingredients_router
 
 app = FastAPI(title="Recipe Information System API")
+app.include_router(ingredients_router)
 
 
 logging.basicConfig(
@@ -51,12 +53,6 @@ async def log_requests(request: Request, call_next):
             status_code,
             duration,
         )
-
-INGREDIENTS = [
-    {"id": "ingredient-1", "name": "chicken"},
-    {"id": "ingredient-2", "name": "pasta"},
-    {"id": "ingredient-3", "name": "tomato"},
-]
 
 RECIPES = [
     {
@@ -180,20 +176,6 @@ def logout_user(authorization: str | None = Header(default=None)):
 @app.get("/")
 def health_check() -> dict[str, str]:
     return {"status": "ok"}
-
-
-@app.get("/api/ingredients")
-def list_ingredients() -> dict[str, list[dict[str, str]]]:
-    return {"items": INGREDIENTS}
-
-
-@app.get("/api/ingredients/{ingredient_id}")
-def get_ingredient(ingredient_id: str) -> dict[str, str]:
-    for ingredient in INGREDIENTS:
-        if ingredient["id"] == ingredient_id:
-            return ingredient
-
-    raise HTTPException(status_code=404, detail="Ingredient not found")
 
 
 @app.get("/api/recipes")
