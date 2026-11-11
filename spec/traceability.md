@@ -76,7 +76,7 @@ This matrix links the approved functional and non-functional requirements to the
 - **Functional requirements without AC coverage:** None.
 - **Non-functional requirements without AC coverage:** REQ-NF-001, REQ-NF-005, REQ-NF-010, REQ-NF-011, and REQ-NF-012. These are verified through inspection or analysis rather than behavior-focused acceptance criteria.
 - **Functional requirements without direct BDD coverage:** REQ-F-001, REQ-F-002, REQ-F-003, REQ-F-006, REQ-F-009, REQ-F-012, REQ-F-013, REQ-F-014, REQ-F-017, REQ-F-023, REQ-F-024, REQ-F-026, REQ-F-028, REQ-F-032, REQ-F-033, REQ-F-034, REQ-F-035, REQ-F-037, REQ-F-038, and REQ-F-041. These are covered by the acceptance criteria and are intentionally not forced into the initial 10-scenario BDD specification.
-- **Inconsistencies found:** None in the approved IDs or mappings. `spec/srs.tex` was referenced as a source artifact but is not currently present in the repository; no new requirement content was inferred from that missing file.
+- **Inconsistencies found:** None in the approved baseline IDs or mappings. `spec/srs.tex` is present and contains the baseline requirements and acceptance criteria. The Lab 5 pagination extension is traced separately below.
 
 ## Lab 3 Issue Mapping (Draft)
 
