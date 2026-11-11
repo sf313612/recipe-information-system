@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_list_catalog_ingredients(api_client):
     response = api_client.get("/ingredients")
 
@@ -18,6 +21,56 @@ def test_browse_recipes(api_client):
 
     assert response.status_code == 200
     assert "items" in response.json()
+
+
+def test_browse_recipes_defaults_to_page_one_and_page_size_ten(api_client):
+    default_response = api_client.get("/recipes")
+    explicit_default_response = api_client.get(
+        "/recipes",
+        params={"page": 1, "pageSize": 10},
+    )
+
+    assert default_response.status_code == 200
+    assert explicit_default_response.status_code == 200
+    assert default_response.json() == explicit_default_response.json()
+    assert set(default_response.json()) == {"items"}
+    assert len(default_response.json()["items"]) <= 10
+
+
+def test_browse_recipes_returns_requested_page_in_collection_order(api_client):
+    collection_response = api_client.get("/recipes", params={"pageSize": 10000})
+    first_response = api_client.get("/recipes", params={"page": 1, "pageSize": 1})
+    second_response = api_client.get("/recipes", params={"page": 2, "pageSize": 1})
+
+    assert collection_response.status_code == 200
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+
+    collection = collection_response.json()["items"]
+    assert len(collection) >= 2
+    assert first_response.json()["items"] == collection[:1]
+    assert second_response.json()["items"] == collection[1:2]
+
+
+def test_browse_recipes_page_beyond_collection_is_empty(api_client):
+    collection_response = api_client.get("/recipes", params={"pageSize": 10000})
+    assert collection_response.status_code == 200
+    collection = collection_response.json()["items"]
+
+    response = api_client.get(
+        "/recipes",
+        params={"page": len(collection) + 1, "pageSize": 1},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
+
+
+@pytest.mark.parametrize("params", [{"page": 0}, {"pageSize": 0}])
+def test_browse_recipes_rejects_values_below_one(api_client, params):
+    response = api_client.get("/recipes", params=params)
+
+    assert response.status_code == 422
 
 
 def test_get_recipe_details(api_client, recipe_id):
