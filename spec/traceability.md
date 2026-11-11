@@ -108,3 +108,15 @@ This section links the proposed API contract in `docs/openapi.yaml` to existing 
 | Cooked-dish photos | `POST /api/recipes/{recipeId}/cooked-dish-photos`, `PUT /api/recipes/{recipeId}/cooked-dish-photos/me`, `DELETE /api/recipes/{recipeId}/cooked-dish-photos/me` | REQ-F-041--REQ-F-045 |
 
 REQ-F-007, REQ-F-008, REQ-F-040, and REQ-F-045 also contain client-side prompt, navigation, or confirmation behavior; no separate API operation is proposed for those client-side actions. REQ-F-009 and REQ-F-038 are scope exclusions and have no API operation.
+
+## Lab 5 Pagination Addendum Mapping
+
+The pagination addendum supplements `REQ-F-035` and `AC-021`. It does not alter the approved Lab 2 requirement counts or mappings above.
+
+| Addendum requirement | Addendum acceptance criteria | API operation | Verification |
+|---|---|---|---|
+| ADD-F-001 | ADD-AC-001, ADD-AC-002, ADD-AC-003 | `GET /api/recipes` | `test_browse_recipes_returns_requested_page_in_collection_order`; `test_browse_recipes_page_beyond_collection_is_empty` |
+| ADD-F-002 | ADD-AC-001, ADD-AC-004 | `GET /api/recipes?page&pageSize` | `test_browse_recipes_defaults_to_page_one_and_page_size_ten`; `test_browse_recipes_rejects_values_below_one` |
+| ADD-F-003 | ADD-AC-002, ADD-AC-003 | `GET /api/recipes?page&pageSize` | `test_browse_recipes_returns_requested_page_in_collection_order`; `test_browse_recipes_page_beyond_collection_is_empty` |
+
+The focused tests characterize behavior already present in the committed implementation. A RED/GREEN cycle was not claimed because demonstrating RED would require breaking that pre-existing behavior; see `spec/addendum-pagination.md` and `logs/lab5.md`.

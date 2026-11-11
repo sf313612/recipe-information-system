@@ -109,7 +109,9 @@ paths:
       tags: [Recipes]
       security: []
       summary: Browse the shared recipe collection
-      description: REQ-F-002, REQ-F-035.
+      description: >-
+        REQ-F-002, REQ-F-035, ADD-F-001 through ADD-F-003. Defaults to page 1
+        and pageSize 10; results retain the existing collection order.
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
@@ -332,12 +334,14 @@ components:
       name: page
       in: query
       required: false
-      schema: { type: integer, minimum: 1 }
+      description: 1-based page number; defaults to 1.
+      schema: { type: integer, minimum: 1, default: 1 }
     PageSize:
       name: pageSize
       in: query
       required: false
-      schema: { type: integer, minimum: 1 }
+      description: Number of recipes per page; defaults to 10.
+      schema: { type: integer, minimum: 1, default: 10 }
   responses:
     BadRequest:
       description: Malformed request or invalid search input
